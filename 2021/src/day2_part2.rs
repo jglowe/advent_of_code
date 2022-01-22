@@ -19,7 +19,7 @@
 use std::fs;
 
 fn main() {
-    let filename = "input.txt";
+    let filename = "data/day2_input.txt";
 
     let file_contents = match fs::read_to_string(filename) {
         Ok(contents) => contents,
@@ -28,6 +28,7 @@ fn main() {
 
     let mut depth : i32 = 0;
     let mut horizontal : i32 = 0;
+    let mut aim: i32 = 0;
 
     for line in file_contents.split("\n") {
         let split_line : Vec<&str> = line.split(" ").collect();
@@ -43,9 +44,9 @@ fn main() {
         };
 
         match command {
-            "up" => depth -= number,
-            "down" => depth += number,
-            "forward" => horizontal += number,
+            "up" => aim -= number,
+            "down" => aim += number,
+            "forward" => {horizontal += number; depth += number * aim},
             _ => println!("Unmatch command")
         }
     }
