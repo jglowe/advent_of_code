@@ -37,6 +37,7 @@ impl PartialEq for Point {
         self.x == other.x && self.y == other.y
     }
 }
+
 impl FromStr for Point {
     type Err = ParseIntError;
 
@@ -65,19 +66,15 @@ fn main() {
             continue;
         }
 
-        println!("{}", line);
-        let points: Vec<&str> = line.split(" -> ").collect();
+        let (start, end) = line.split_once(" -> ").unwrap();
 
-        let point1: Point = Point::from_str(points[0]).unwrap();
-        let point2: Point = Point::from_str(points[1]).unwrap();
-
-        println!("{}.{} -> {}.{}", point1.x, point1.y, point2.x, point2.y);
+        let point1: Point = start.parse().unwrap();
+        let point2: Point = end.parse().unwrap();
 
         if point1.x == point2.x {
             let start = point1.y.min(point2.y);
             let end = point1.y.max(point2.y) + 1;
             for i in start..end {
-                println!("{},{}", point1.x, i);
                 let count = fault_line_points
                     .entry(Point::new(point1.x, i))
                     .or_insert(0);
@@ -87,7 +84,6 @@ fn main() {
             let start = point1.x.min(point2.x);
             let end = point1.x.max(point2.x) + 1;
             for i in start..end {
-                println!("{},{}", i, point1.y);
                 let count = fault_line_points
                     .entry(Point::new(i, point1.y))
                     .or_insert(0);
@@ -107,32 +103,16 @@ fn main() {
                 } else {
                     start_y + (i - start_x)
                 };
-                println!("{},{}", i, y);
                 let count = fault_line_points.entry(Point::new(i, y)).or_insert(0);
                 *count = *count + 1;
             }
         }
     }
 
-    for i in 0..11 {
-        let mut line: Vec<i32> = Vec::new();
-        for j in 0..11 {
-            let value: Option<&i32> = fault_line_points.get(&Point::new(j, i));
-            match value {
-                Some(v) => line.push(*v),
-                None => line.push(0),
-            }
-        }
-
-        println!(
-            "{}",
-            line.iter()
-                .map(|value| value.to_string())
-                .collect::<Vec<String>>()
-                .join(" ")
-        )
-    }
-
-    let values: Vec<i32> = fault_line_points.into_values().filter(|x| *x > 1).collect();
-    println!("{}", values.len());
+    println!(
+        "{}",
+        fault_line_points
+            .iter()
+            .fold(0, |acc, (_, value)| acc + if *value > 1 { 1 } else { 0 })
+    );
 }
