@@ -75,19 +75,17 @@ fn main() {
             let start = point1.y.min(point2.y);
             let end = point1.y.max(point2.y) + 1;
             for i in start..end {
-                let count = fault_line_points
+                *fault_line_points
                     .entry(Point::new(point1.x, i))
-                    .or_insert(0);
-                *count = *count + 1;
+                    .or_insert(0) += 1;
             }
         } else if point1.y == point2.y {
             let start = point1.x.min(point2.x);
             let end = point1.x.max(point2.x) + 1;
             for i in start..end {
-                let count = fault_line_points
+                *fault_line_points
                     .entry(Point::new(i, point1.y))
-                    .or_insert(0);
-                *count = *count + 1;
+                    .or_insert(0) += 1;
             }
         } else if (point1.x - point2.x).abs() == (point1.y - point2.y).abs() {
             let start_x = point1.x.min(point2.x);
@@ -103,8 +101,7 @@ fn main() {
                 } else {
                     start_y + (i - start_x)
                 };
-                let count = fault_line_points.entry(Point::new(i, y)).or_insert(0);
-                *count = *count + 1;
+                *fault_line_points.entry(Point::new(i, y)).or_insert(0) += 1;
             }
         }
     }
