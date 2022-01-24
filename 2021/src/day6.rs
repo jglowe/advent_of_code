@@ -12,7 +12,7 @@
 // Jonathan Lowe
 // github : https://github.com/jglowe
 //
-// The file for day5 advent of code 2021
+// The file for day6 advent of code 2021
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 use std::fs;
