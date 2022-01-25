@@ -18,7 +18,7 @@
 
 use std::fs;
 
-fn contains_each_letter(letters: &Vec<char>, string: &str) -> bool {
+fn string_contains_each_letter(letters: &Vec<char>, string: &str) -> bool {
     let mut contains = letters.len() > 0;
 
     for letter in letters {
@@ -122,7 +122,7 @@ fn main() {
 
         let three: Vec<char> = two_or_three_or_five
             .iter()
-            .find(|digit| digit.contains(one[0]) && digit.contains(one[1]))
+            .find(|digit| string_contains_each_letter(&one, digit))
             .unwrap()
             .chars()
             .collect();
@@ -130,7 +130,7 @@ fn main() {
         let zero: Vec<char> = zero_or_six_or_nine
             .iter()
             .find(|digit| {
-                !contains_each_letter(&three, digit)
+                !string_contains_each_letter(&three, digit)
                     && (digit.chars().collect::<Vec<char>>() != six)
             })
             .unwrap()
@@ -169,7 +169,7 @@ fn main() {
         let mut output_digits = 0;
         for digit in output_numbers {
             for (i, number) in numbers.iter().enumerate() {
-                if digit.len() == number.len() && contains_each_letter(&number, digit) {
+                if digit.len() == number.len() && string_contains_each_letter(&number, digit) {
                     output_digits = output_digits * 10;
                     output_digits += i;
                 }
