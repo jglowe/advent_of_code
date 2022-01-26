@@ -17,6 +17,11 @@
 
 use std::fs;
 
+enum Syntax {
+    Incomplete(i64),
+    Corrupted(i64),
+}
+
 fn char_matches(left: char, right: char) -> bool {
     (left == '(' && right == ')')
         || (left == '[' && right == ']')
@@ -60,46 +65,65 @@ fn main() {
         Err(e) => panic!("Error {} {}", e, filename),
     };
 
-    let mut corrupted_points = 0;
-    let mut completed_points = Vec::new();
-
-    for line in file_contents.trim().split("\n") {
-        let mut brackets: Vec<char> = Vec::new();
-        let mut is_corrupted = false;
-        for c in line.chars() {
-            if ['<', '(', '[', '{'].contains(&c) {
-                brackets.push(c);
-            } else {
-                let points = match brackets.pop() {
-                    Some(left) => {
-                        if char_matches(left, c) {
-                            None
-                        } else {
-                            Some(corrupted_char_points(c))
+    let scores = file_contents
+        .trim()
+        .split("\n")
+        .map(|line| {
+            let mut brackets: Vec<char> = Vec::new();
+            for c in line.chars() {
+                if ['<', '(', '[', '{'].contains(&c) {
+                    brackets.push(c);
+                } else {
+                    let points = match brackets.pop() {
+                        Some(left) => {
+                            if char_matches(left, c) {
+                                None
+                            } else {
+                                Some(corrupted_char_points(c))
+                            }
                         }
-                    }
-                    None => Some(corrupted_char_points(c)),
-                };
+                        None => Some(corrupted_char_points(c)),
+                    };
 
-                if let Some(point) = points {
-                    corrupted_points += point;
-                    is_corrupted = true;
-                    break;
+                    if let Some(point) = points {
+                        return Syntax::Corrupted(point);
+                    }
                 }
             }
-        }
-        if !is_corrupted {
-            completed_points.push(
+            Syntax::Incomplete(
                 brackets
                     .iter()
                     .rev()
                     .fold(0, |acc, c| (acc * 5) + completed_char_points(*c)),
-            );
-        }
-    }
+            )
+        })
+        .collect::<Vec<Syntax>>();
 
-    completed_points.sort();
+    let corrupted_points = scores
+        .iter()
+        .filter(|score| match score {
+            Syntax::Corrupted(_) => true,
+            Syntax::Incomplete(_) => false,
+        })
+        .fold(0, |acc, score| match score {
+            Syntax::Corrupted(score) => acc + score,
+            Syntax::Incomplete(_) => panic!("FILTER DIDN'T WORK"),
+        });
+
+    let mut incomplete_points = scores
+        .iter()
+        .filter(|score| match score {
+            Syntax::Corrupted(_) => false,
+            Syntax::Incomplete(_) => true,
+        })
+        .map(|score| match score {
+            Syntax::Corrupted(_) => panic!("FILTER DIDN'T WORK"),
+            Syntax::Incomplete(score) => *score,
+        })
+        .collect::<Vec<i64>>();
+
+    incomplete_points.sort();
 
     println!("{}", corrupted_points);
-    println!("{}", completed_points[completed_points.len() / 2]);
+    println!("{}", incomplete_points[incomplete_points.len() / 2]);
 }
