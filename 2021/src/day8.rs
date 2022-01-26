@@ -61,18 +61,11 @@ fn main() {
         let input_numbers: Vec<&str> = input.split(" ").collect();
         let output_numbers: Vec<&str> = output.split(" ").collect();
 
-        if output_numbers.len() != 4 {
-            panic!("Incorrect number of output numbers");
-        }
-
-        total_digits += output_numbers.iter().fold(0, |acc, display| {
-            if display.len() == 2 || display.len() == 3 || display.len() == 4 || display.len() == 7
-            {
-                acc + 1
-            } else {
-                acc
-            }
-        });
+        total_digits += output_numbers
+            .iter()
+            .filter(|digit| [2, 3, 4, 7].contains(&digit.len()))
+            .collect::<Vec<&&str>>()
+            .len();
 
         let one: Vec<char> = input_numbers
             .iter()
@@ -112,10 +105,7 @@ fn main() {
 
         let six: Vec<char> = zero_or_six_or_nine
             .iter()
-            .find(|digit| {
-                digit.contains(one[0]) && !digit.contains(one[1])
-                    || (digit.contains(one[1]) && !digit.contains(one[0]))
-            })
+            .find(|digit| !string_contains_each_letter(&seven, digit))
             .unwrap()
             .chars()
             .collect();
