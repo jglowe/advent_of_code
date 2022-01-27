@@ -40,7 +40,7 @@ fn main() {
     };
     let lines = file_contents.trim().split("\n").collect::<Vec<&str>>();
 
-    let mut total_flashes = 0;
+    let mut hundred_iteration_flashes = 0;
 
     let mut grid = lines
         .iter()
@@ -57,24 +57,27 @@ fn main() {
         let mut flashing_fish: Vec<(usize, usize)> = Vec::new();
         for i in 0..grid.len() {
             for j in 0..grid.len() {
+                // Increment each grid location
                 grid[i][j] += 1;
+
+                // Add fish to flashing
                 if grid[i][j] > 9 {
                     flashing_fish.push((i, j));
                 }
             }
         }
 
-        while flashing_fish.len() > 0 {
-            let (x, y) = flashing_fish.pop().unwrap();
-
+        while let Some((x, y)) = flashing_fish.pop() {
             // Already counted case
             if grid[x][y] == 0 {
                 continue;
             }
 
             if iterations <= 100 {
-                total_flashes += 1;
+                hundred_iteration_flashes += 1;
             }
+
+            // Set the thing to be flashed
             grid[x][y] = 0;
 
             // Cardinal directions
@@ -105,18 +108,13 @@ fn main() {
             }
         }
 
-        let mut all_flashed = true;
-
-        for i in 0..grid.len() {
-            for j in 0..grid[0].len() {
-                all_flashed = all_flashed && grid[i][j] == 0;
-            }
-        }
-        if all_flashed {
+        if grid.iter().fold(true, |acc, row| {
+            acc && row.iter().fold(true, |acc, item| acc && *item == 0)
+        }) {
             break;
         }
     }
 
-    println!("{}", total_flashes);
+    println!("{}", hundred_iteration_flashes);
     println!("{}", iterations);
 }
