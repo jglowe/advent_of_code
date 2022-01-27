@@ -30,30 +30,22 @@ fn char_matches(left: char, right: char) -> bool {
 }
 
 fn corrupted_char_points(c: char) -> i64 {
-    if c == '>' {
-        25137
-    } else if c == '}' {
-        1197
-    } else if c == ']' {
-        57
-    } else if c == ')' {
-        3
-    } else {
-        panic!("Invalid char: {}", c);
+    match c {
+        '>' => 25137,
+        '}' => 1197,
+        ']' => 57,
+        ')' => 3,
+        _ => panic!("Invalid char: {}", c),
     }
 }
 
 fn completed_char_points(c: char) -> i64 {
-    if c == '<' {
-        4
-    } else if c == '{' {
-        3
-    } else if c == '[' {
-        2
-    } else if c == '(' {
-        1
-    } else {
-        panic!("Invalid char: {}", c);
+    match c {
+        '<' => 4,
+        '{' => 3,
+        '[' => 2,
+        '(' => 1,
+        _ => panic!("Invalid char: {}", c),
     }
 }
 
@@ -101,24 +93,16 @@ fn main() {
 
     let corrupted_points = scores
         .iter()
-        .filter(|score| match score {
-            Syntax::Corrupted(_) => true,
-            Syntax::Incomplete(_) => false,
-        })
         .fold(0, |acc, score| match score {
             Syntax::Corrupted(score) => acc + score,
-            Syntax::Incomplete(_) => panic!("FILTER DIDN'T WORK"),
+            Syntax::Incomplete(_) => acc
         });
 
     let mut incomplete_points = scores
         .iter()
-        .filter(|score| match score {
-            Syntax::Corrupted(_) => false,
-            Syntax::Incomplete(_) => true,
-        })
-        .map(|score| match score {
-            Syntax::Corrupted(_) => panic!("FILTER DIDN'T WORK"),
-            Syntax::Incomplete(score) => *score,
+        .filter_map(|score| match score {
+            Syntax::Corrupted(_) => None,
+            Syntax::Incomplete(score) => Some(*score),
         })
         .collect::<Vec<i64>>();
 
