@@ -25,91 +25,102 @@ struct Cave {
     adjcent: HashSet<String>,
 }
 
+// struct Visits {
+//     max_count: i32,
+//     max_count_item: Option<String>,
+//     counts: HashMap<String, i32>,
+// }
+
 fn find_path(
+    cave: &Cave,
     caves: &HashMap<String, Cave>,
-    already_visited: Vec<String>,
-    name: String,
+    mut already_visited: Vec<String>,
     twice_visit: String,
-    twice_visited: i32,
-) -> Option<HashSet<Vec<String>>> {
-    if name == "start" && already_visited.len() != 0 {
-        None
-    } else if name == "end" {
-        let mut cloned_array = already_visited.clone();
-        cloned_array.push("end".to_string());
-        Some(vec![cloned_array].iter().cloned().collect())
-    } else if name.chars().collect::<Vec<char>>()[0].is_lowercase()
-        && already_visited.contains(&name)
-        && (name != twice_visit || twice_visited >= 1)
+    visited_times: i32,
+    max_visit_count: i32,
+) -> Option<Vec<Vec<String>>> {
+    if cave.name == "start" {
+        return None;
+    }
+
+    if cave.name == "end" {
+        already_visited.push("end".to_string());
+        return Some(vec![already_visited]);
+    }
+
+    if cave.is_small
+        && already_visited.contains(&cave.name)
+        && (cave.name != twice_visit || visited_times >= max_visit_count - 1)
     {
-        None
+        return None;
+    }
+
+    let visited_times = if cave.name == twice_visit {
+        visited_times + 1
     } else {
-        let cave = match caves.get(&name) {
-            Some(cave) => cave,
-            None => panic!("Invalid Cave Name"),
-        };
+        visited_times
+    };
 
-        let twice_visited = if name == twice_visit {
-            twice_visited + 1
-        } else {
-            twice_visited
-        };
+    let mut routes: Vec<Vec<String>> = Vec::new();
 
-        let mut routes: HashSet<Vec<String>> = HashSet::new();
+    for adjcent_cave_name in cave.adjcent.iter() {
+        let adjcent_cave = caves.get(adjcent_cave_name).unwrap();
+        let mut cloned_path = already_visited.clone();
+        cloned_path.push(cave.name.clone());
 
-        for adjcent_cave in cave.adjcent.iter() {
-            let mut cloned_path = already_visited.clone();
-            cloned_path.push(name.clone());
-
-            if twice_visit == "" && name.chars().collect::<Vec<char>>()[0].is_lowercase() {
-                let cloned_path = cloned_path.clone();
-                if let Some(paths) = find_path(
-                    caves,
-                    cloned_path,
-                    adjcent_cave.to_string(),
-                    name.clone(),
-                    twice_visited,
-                ) {
-                    for path in paths.iter() {
-                        routes.insert((*path).clone());
-                    }
-                }
-            }
-            if let Some(paths) = find_path(
+        if twice_visit == "" && adjcent_cave.is_small {
+            let cloned_path = cloned_path.clone();
+            if let Some(mut paths) = find_path(
+                adjcent_cave,
                 caves,
                 cloned_path,
-                adjcent_cave.to_string(),
-                twice_visit.clone(),
-                twice_visited,
+                (*adjcent_cave.name).to_string(),
+                visited_times,
+                max_visit_count,
             ) {
-                for path in paths.iter() {
-                    routes.insert((*path).clone());
-                }
+                routes.append(&mut paths);
             }
         }
-
-        Some(routes)
+        if let Some(mut paths) = find_path(
+            adjcent_cave,
+            caves,
+            cloned_path,
+            twice_visit.clone(),
+            visited_times,
+            max_visit_count,
+        ) {
+            routes.append(&mut paths);
+        }
     }
+
+    Some(routes)
 }
 
-fn find_paths(caves: &HashMap<String, Cave>, twice_visit: bool) -> HashSet<Vec<String>> {
-    if twice_visit {
-        match find_path(caves, Vec::new(), "start".to_string(), "".to_string(), 0) {
-            Some(v) => v,
-            None => HashSet::new(),
-        }
-    } else {
-        match find_path(
+fn find_paths(caves: &HashMap<String, Cave>, max_visits: i32) -> HashSet<Vec<String>> {
+    let start_cave = caves.get("start").unwrap();
+
+    let mut results = HashSet::new();
+
+    for cave_name in start_cave.adjcent.iter() {
+        let cave = caves.get(cave_name).unwrap();
+        let paths = match find_path(
+            cave,
             caves,
-            Vec::new(),
-            "start".to_string(),
-            "start".to_string(),
-            2,
+            vec!["start".to_string()],
+            "".to_string(),
+            0,
+            max_visits,
         ) {
             Some(v) => v,
-            None => HashSet::new(),
+            None => Vec::new(),
+        };
+
+        for path in paths.into_iter() {
+            results.insert(path);
         }
     }
+
+    results
 }
 
 fn main() {
@@ -134,7 +145,7 @@ fn main() {
 
             (*cave).adjcent.insert(edge.1.to_string());
 
-            // Creates the left cave if not there
+            // Creates the right cave if not there
             let cave = caves.entry(edge.1.to_string()).or_insert(Cave {
                 name: edge.1.to_string(),
                 is_small: edge.1.chars().collect::<Vec<char>>()[0].is_lowercase(),
@@ -144,34 +155,18 @@ fn main() {
             (*cave).adjcent.insert(edge.0.to_string());
         });
 
-    for (_, cave) in caves.iter() {
-        println!("Cave name: {}", cave.name);
-        println!("is_small_cave: {}", cave.is_small);
-        print!("adjcent:");
-        for adjcent in cave.adjcent.iter() {
-            print!("{},", adjcent);
-        }
-        println!("");
-    }
+    let paths = find_paths(&caves, 1);
 
-    let paths = find_paths(&caves, false);
-
-    for path in &paths {
-        for cave in path {
-            print!("{}->", cave)
-        }
-        println!("");
+    for path in paths.iter() {
+        println!("{}", path.join(","));
     }
 
     println!("Part 1 {}", paths.len());
 
-    let paths = find_paths(&caves, true);
+    let paths = find_paths(&caves, 2);
 
-    for path in &paths {
-        for cave in path {
-            print!("{}->", cave)
-        }
-        println!("");
+    for path in paths.iter() {
+        println!("{}", path.join(","));
     }
 
     println!("Part 2 {}", paths.len());
