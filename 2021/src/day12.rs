@@ -18,6 +18,69 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fs;
+use std::rc::Rc;
+
+struct Path {
+    value: String,
+    next: Option<Rc<Path>>,
+}
+
+impl Path {
+    fn new(value: String) -> Path {
+        Path { value, next: None }
+    }
+
+    fn push(path: Rc<Path>, value: String) -> Path {
+        Path {
+            value,
+            next: Some(path),
+        }
+    }
+
+    fn contains(&self, value: &String) -> bool {
+        if self.value == *value {
+            return true;
+        }
+
+        let mut current_node = &self.next;
+        while let Some(next_node) = current_node {
+            if next_node.value == *value {
+                return true;
+            }
+
+            current_node = &next_node.next;
+        }
+
+        return false;
+    }
+
+    fn to_string(&self) -> String {
+        let mut string = "".to_string();
+
+        match self.next {
+            Some(_) => {
+                string.push_str(&self.value);
+                string.push_str("<-")
+            }
+            None => string.push_str(&self.value),
+        }
+
+        let mut current_node = &self.next;
+        while let Some(node) = current_node {
+            match node.next {
+                Some(_) => {
+                    string.push_str(&node.value);
+                    string.push_str("<-")
+                }
+                None => string.push_str(&node.value),
+            }
+
+            current_node = &node.next;
+        }
+
+        return string;
+    }
+}
 
 struct Cave {
     name: String,
@@ -25,27 +88,21 @@ struct Cave {
     adjcent: HashSet<String>,
 }
 
-// struct Visits {
-//     max_count: i32,
-//     max_count_item: Option<String>,
-//     counts: HashMap<String, i32>,
-// }
-
 fn find_path(
     cave: &Cave,
     caves: &HashMap<String, Cave>,
-    mut already_visited: Vec<String>,
+    already_visited: Rc<Path>,
     twice_visit: String,
     visited_times: i32,
     max_visit_count: i32,
-) -> Option<Vec<Vec<String>>> {
+) -> Option<Vec<Path>> {
     if cave.name == "start" {
         return None;
     }
 
     if cave.name == "end" {
-        already_visited.push("end".to_string());
-        return Some(vec![already_visited]);
+        let path = Path::push(already_visited, "end".to_string());
+        return Some(vec![path]);
     }
 
     if cave.is_small
@@ -61,19 +118,17 @@ fn find_path(
         visited_times
     };
 
-    let mut routes: Vec<Vec<String>> = Vec::new();
+    let mut routes: Vec<Path> = Vec::new();
 
     for adjcent_cave_name in cave.adjcent.iter() {
         let adjcent_cave = caves.get(adjcent_cave_name).unwrap();
-        let mut cloned_path = already_visited.clone();
-        cloned_path.push(cave.name.clone());
+        let path = Rc::new(Path::push(Rc::clone(&already_visited), cave.name.clone()));
 
         if twice_visit == "" && adjcent_cave.is_small {
-            let cloned_path = cloned_path.clone();
             if let Some(mut paths) = find_path(
                 adjcent_cave,
                 caves,
-                cloned_path,
+                Rc::clone(&path),
                 (*adjcent_cave.name).to_string(),
                 visited_times,
                 max_visit_count,
@@ -84,7 +139,7 @@ fn find_path(
         if let Some(mut paths) = find_path(
             adjcent_cave,
             caves,
-            cloned_path,
+            path,
             twice_visit.clone(),
             visited_times,
             max_visit_count,
@@ -96,7 +151,7 @@ fn find_path(
     Some(routes)
 }
 
-fn find_paths(caves: &HashMap<String, Cave>, max_visits: i32) -> HashSet<Vec<String>> {
+fn find_paths(caves: &HashMap<String, Cave>, max_visits: i32) -> HashSet<String> {
     let start_cave = caves.get("start").unwrap();
 
     let mut results = HashSet::new();
@@ -106,7 +161,7 @@ fn find_paths(caves: &HashMap<String, Cave>, max_visits: i32) -> HashSet<Vec<Str
         let paths = match find_path(
             cave,
             caves,
-            vec!["start".to_string()],
+            Rc::new(Path::new("start".to_string())),
             "".to_string(),
             0,
             max_visits,
@@ -116,7 +171,7 @@ fn find_paths(caves: &HashMap<String, Cave>, max_visits: i32) -> HashSet<Vec<Str
         };
 
         for path in paths.into_iter() {
-            results.insert(path);
+            results.insert(path.to_string());
         }
     }
 
@@ -157,17 +212,17 @@ fn main() {
 
     let paths = find_paths(&caves, 1);
 
-    for path in paths.iter() {
-        println!("{}", path.join(","));
-    }
+    // for path in paths.iter() {
+    //     println!("{}", path);
+    // }
 
     println!("Part 1 {}", paths.len());
 
     let paths = find_paths(&caves, 2);
 
-    for path in paths.iter() {
-        println!("{}", path.join(","));
-    }
+    // for path in paths.iter() {
+    //     println!("{}", path);
+    // }
 
     println!("Part 2 {}", paths.len());
 }
