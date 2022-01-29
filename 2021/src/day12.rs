@@ -178,15 +178,10 @@ fn find_paths(caves: &HashMap<String, Cave>, max_visits: i32) -> HashSet<String>
     results
 }
 
-fn main() {
-    let filename = "data/day12_input.txt";
-
-    let file_contents = match fs::read_to_string(filename) {
-        Ok(contents) => contents,
-        Err(e) => panic!("Error {} {}", e, filename),
-    };
+fn parse_graph(input: &str) -> HashMap<String, Cave> {
     let mut caves: HashMap<String, Cave> = HashMap::new();
-    file_contents
+    println!("{}", input);
+    input
         .trim()
         .split("\n")
         .map(|line| line.split_once("-").unwrap())
@@ -209,6 +204,18 @@ fn main() {
 
             (*cave).adjcent.insert(edge.0.to_string());
         });
+    caves
+}
+
+fn main() {
+    let filename = "data/day12_input.txt";
+
+    let file_contents = match fs::read_to_string(filename) {
+        Ok(contents) => contents,
+        Err(e) => panic!("Error {} {}", e, filename),
+    };
+
+    let caves = parse_graph(&file_contents);
 
     let paths = find_paths(&caves, 1);
 
@@ -225,4 +232,31 @@ fn main() {
     // }
 
     println!("Part 2 {}", paths.len());
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_small_example() {
+        let input = "start-A\n\
+                     start-b\n\
+                     A-c\n\
+                     A-b\n\
+                     b-d\n\
+                     A-end\n\
+                     b-end";
+
+        let caves = parse_graph(input);
+
+        let paths = find_paths(&caves, 1);
+
+        assert_eq!(10, paths.len());
+
+        let paths = find_paths(&caves, 2);
+
+        assert_eq!(36, paths.len());
+    }
+
 }
