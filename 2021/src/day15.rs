@@ -23,7 +23,6 @@ use std::fs;
 struct Node {
     risk_level: u32,
     distance: Option<u32>,
-    path: Option<(usize, usize)>,
     been_visited: bool,
 }
 
@@ -38,7 +37,6 @@ fn parse_input(input: String) -> Vec<Vec<Node>> {
                 risk_level: c.to_digit(10).unwrap(),
                 distance: None,
                 been_visited: false,
-                path: None,
             });
         }
 
@@ -66,7 +64,6 @@ fn extend_graph(graph: &mut Vec<Vec<Node>>) {
                 row.push(Node {
                     risk_level: wrap_risk(row[j].risk_level, i),
                     distance: None,
-                    path: None,
                     been_visited: false,
                 })
             }
@@ -81,7 +78,6 @@ fn extend_graph(graph: &mut Vec<Vec<Node>>) {
                 row.push(Node {
                     risk_level: wrap_risk(column.risk_level, i),
                     distance: None,
-                    path: None,
                     been_visited: false,
                 })
             }
@@ -92,7 +88,6 @@ fn extend_graph(graph: &mut Vec<Vec<Node>>) {
 
 fn find_shorted_path_length(graph: &mut Vec<Vec<Node>>) -> u32 {
     graph[0][0].distance = Some(0);
-    graph[0][0].path = Some((0, 0));
 
     let mut unknown_nodes = BinaryHeap::new();
     let mut visited = HashSet::new();
@@ -128,12 +123,10 @@ fn find_shorted_path_length(graph: &mut Vec<Vec<Node>>) -> u32 {
                     Some(d) => {
                         if dist + graph[*i][*j].risk_level < d {
                             graph[*i][*j].distance = Some(dist + graph[*i][*j].risk_level);
-                            graph[*i][*j].path = Some((x, y));
                         }
                     }
                     None => {
                         graph[*i][*j].distance = Some(dist + graph[*i][*j].risk_level);
-                        graph[*i][*j].path = Some((x, y));
                     }
                 }
                 unknown_nodes.push(Reverse((graph[*i][*j].distance.unwrap(), (*i, *j))));
