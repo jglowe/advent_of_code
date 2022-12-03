@@ -15,8 +15,6 @@
 // The file for day2 advent of code 2022
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-use std::fs;
-
 enum Hand {
     Rock,
     Paper,
@@ -179,10 +177,7 @@ fn compute_score2(rounds: &Vec<Round>) -> i64 {
 fn main() {
     let filename = "data/day2_input.txt";
 
-    let input = match fs::read_to_string(filename) {
-        Ok(contents) => contents,
-        Err(e) => panic!("Error {}", e),
-    };
+    let input = aoc::read_file(filename);
 
     let rounds = parse_rounds(input);
 

@@ -15,8 +15,6 @@
 // The file for day1 advent of code 2022
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-use std::fs;
-
 fn parse_input(input: String) -> Vec<i64> {
     let mut result = Vec::new();
     let mut calorie_count = 0;
@@ -57,10 +55,7 @@ fn top_n_sum(counts: &Vec<i64>, top_n: usize) -> i64 {
 fn main() {
     let filename = "data/day1_input.txt";
 
-    let input = match fs::read_to_string(filename) {
-        Ok(contents) => contents,
-        Err(e) => panic!("Error {}", e),
-    };
+    let input = aoc::read_file(filename);
 
     let mut calorie_counts = parse_input(input);
     sort_calories(&mut calorie_counts);
