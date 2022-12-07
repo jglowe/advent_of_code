@@ -21,8 +21,6 @@ struct Move {
     end: usize,
 }
 
-
-
 struct Ship {
     container_stacks: Vec<Vec<char>>,
 }
@@ -63,7 +61,6 @@ impl Ship {
 
             for _ in 0..m.number {
                 crain.push(self.container_stacks[m.start].pop().unwrap());
-
             }
 
             for _ in 0..m.number {
@@ -83,7 +80,7 @@ fn parse_input(input: &str) -> (Ship, Vec<Move>) {
     for line in input.split("\n") {
         if line == "" {
             found_empty_line = true;
-            continue
+            continue;
         }
 
         if found_empty_line {
@@ -103,14 +100,11 @@ fn parse_input(input: &str) -> (Ship, Vec<Move>) {
     let line = ship_lines.pop().unwrap();
     let width = line.split("   ").collect::<Vec<&str>>().len();
 
-    println!("WIDTH {}", width);
-
     for _ in 0..width {
         ship.container_stacks.push(Vec::new());
     }
 
     while let Some(line) = ship_lines.pop() {
-        println!("{}", line);
         for i in 0..width {
             let index = i * 4 + 1;
 

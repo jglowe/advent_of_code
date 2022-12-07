@@ -103,7 +103,6 @@ mod tests {
             find_packet_start("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw").unwrap()
         );
 
-
         assert_eq!(
             19,
             find_message_start("mjqjpqmgbljsphdztnvjfqwrcgsmlb").unwrap()
