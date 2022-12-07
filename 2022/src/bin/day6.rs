@@ -17,11 +17,13 @@
 
 use std::collections::HashMap;
 
-fn find_n_different_chars(input: &str, n: usize) -> Result<usize, &str> {
+fn find_n_different_chars(input: &str, n: usize) -> Result<usize, String> {
     let chars: Vec<char> = input.chars().collect();
     let mut char_map: HashMap<char, usize> = HashMap::new();
 
-    assert!(chars.len() >= n, "String must be at least 14 chars long");
+    if chars.len() < n {
+        return Err(format!("String must be at least {} chars long", n));
+    }
 
     for offset in 0..n {
         char_map
@@ -58,14 +60,14 @@ fn find_n_different_chars(input: &str, n: usize) -> Result<usize, &str> {
         return Ok(chars.len());
     }
 
-    Err("String starting position not found")
+    Err("String starting position not found".to_string())
 }
 
-fn find_packet_start(input: &str) -> Result<usize, &str> {
+fn find_packet_start(input: &str) -> Result<usize, String> {
     find_n_different_chars(input, 4)
 }
 
-fn find_message_start(input: &str) -> Result<usize, &str> {
+fn find_message_start(input: &str) -> Result<usize, String> {
     find_n_different_chars(input, 14)
 }
 
