@@ -12,7 +12,7 @@
 // Jonathan Lowe
 // github : https://github.com/jglowe
 //
-// The file for day6 advent of code 2022
+// The file for day7 advent of code 2022
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 use std::collections::HashMap;
