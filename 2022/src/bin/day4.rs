@@ -93,12 +93,11 @@ fn overlapping_number(ranges: &Vec<(Range, Range)>) -> i64 {
         .iter()
         .map(Range::ranges_overlap)
         .map(bool_to_i64)
-        .map(|overlap| if overlap { 1 } else { 0 })
         .sum()
 }
 
 fn main() {
-    let input = aoc::read_file("data/day4_input.txt");
+    let input = advent::read_file("data/day4_input.txt");
     let ranges = parse_ranges(input);
 
     println!(

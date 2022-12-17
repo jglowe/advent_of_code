@@ -103,7 +103,7 @@ fn get_badge_priority_sum(input: &String) -> i64 {
 }
 
 fn main() {
-    let input = aoc::read_file("data/day3_input.txt");
+    let input = advent::read_file("data/day3_input.txt");
 
     println!("Priority sum {}", get_priority_sum(&input));
     println!("Badge priority sum {}", get_badge_priority_sum(&input));

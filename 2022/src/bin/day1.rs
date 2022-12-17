@@ -55,7 +55,7 @@ fn top_n_sum(counts: &Vec<i64>, top_n: usize) -> i64 {
 fn main() {
     let filename = "data/day1_input.txt";
 
-    let input = aoc::read_file(filename);
+    let input = advent::read_file(filename);
 
     let mut calorie_counts = parse_input(input);
     sort_calories(&mut calorie_counts);

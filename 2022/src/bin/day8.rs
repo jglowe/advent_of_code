@@ -159,7 +159,7 @@ fn highest_senic_score(map: &Vec<Vec<u8>>) -> i64 {
 }
 
 fn main() {
-    let input = aoc::read_file("data/day8_input.txt").trim().to_string();
+    let input = advent::read_file("data/day8_input.txt").trim().to_string();
     let map = parse_input(&input);
 
     println!("Visible Trees: {}", visible_count(&map));

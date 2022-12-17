@@ -85,7 +85,7 @@ fn find_smallest_to_delete(dir_sizes: &HashMap<String, usize>) -> usize {
 }
 
 fn main() {
-    let input = aoc::read_file("data/day7_input.txt");
+    let input = advent::read_file("data/day7_input.txt");
 
     let file_system = parse(&input);
     println!("{}", find_sum_under_limit(&file_system));

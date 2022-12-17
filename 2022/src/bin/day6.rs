@@ -72,7 +72,7 @@ fn find_message_start(input: &str) -> Result<usize, String> {
 }
 
 fn main() {
-    let input = aoc::read_file("data/day6_input.txt");
+    let input = advent::read_file("data/day6_input.txt");
 
     println!("Packet Start {}", find_packet_start(&input).unwrap());
     println!("Message Start {}", find_message_start(&input).unwrap());

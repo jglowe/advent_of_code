@@ -118,7 +118,7 @@ fn parse_input(input: &str) -> (Ship, Vec<Move>) {
 }
 
 fn main() {
-    let input = aoc::read_file("data/day5_input.txt");
+    let input = advent::read_file("data/day5_input.txt");
     let (mut ship, moves) = parse_input(&input);
 
     ship.run_moves(&moves);

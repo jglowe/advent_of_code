@@ -177,7 +177,7 @@ fn compute_score2(rounds: &Vec<Round>) -> i64 {
 fn main() {
     let filename = "data/day2_input.txt";
 
-    let input = aoc::read_file(filename);
+    let input = advent::read_file(filename);
 
     let rounds = parse_rounds(input);
 
