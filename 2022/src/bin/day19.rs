@@ -97,6 +97,7 @@ fn find_max_geodes(blueprint: &Blueprint, time: usize) -> usize {
             already_there.insert(state.clone());
         }
 
+        // Only one robot can be built at a time and if you can build a geode robot, build it.
         if state.current_ore >= blueprint.geode_cost.0
             && state.current_obsidian >= blueprint.geode_cost.1
         {
@@ -114,26 +115,32 @@ fn find_max_geodes(blueprint: &Blueprint, time: usize) -> usize {
             continue;
         }
 
-        // NO hording ore for you
-        if state.current_ore > state.ore_robots * 5 {
-            continue;
-        }
-
-        let sizes = vec![
+        let max_ore_cost = *vec![
             blueprint.ore_cost,
             blueprint.clay_cost,
             blueprint.obsidian_cost.0,
             blueprint.geode_cost.0,
-        ];
+        ].iter().max().unwrap();
 
-        if state.ore_robots > *sizes.iter().max().unwrap() {
+        // Ore is used for building all robots. If you don't build a robot in 5 minutes, trim path.
+        if state.current_ore > (state.ore_robots * 5).max(max_ore_cost) {
             continue;
         }
 
+        // Knowing you can only build one robot at time, you only need at most the cost of building
+        // a single robot.
+        if state.ore_robots > max_ore_cost {
+            continue;
+        }
+
+        // Knowing you can only build one robot at time, you only need at most the cost of building
+        // a single robot.
         if state.clay_robots > blueprint.obsidian_cost.1 {
             continue;
         }
 
+        // Knowing you can only build one robot at time, you only need at most the cost of building
+        // a single robot.
         if state.obsidian_robots > blueprint.geode_cost.1 {
             continue;
         }
@@ -189,7 +196,6 @@ fn find_max_geodes(blueprint: &Blueprint, time: usize) -> usize {
         queue.push_back(state);
     }
 
-    println!("{}", max_geodes_collected);
     max_geodes_collected
 }
 
