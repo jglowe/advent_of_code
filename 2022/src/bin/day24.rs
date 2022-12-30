@@ -65,6 +65,7 @@ fn walk_to_destination(map: &Map, start: (usize, usize), end: (usize, usize)) ->
 
     let mut possible_positions = HashSet::new();
     possible_positions.insert(start);
+
     loop {
         let mut next_possible_positions = HashSet::new();
 
@@ -109,6 +110,7 @@ fn walk_to_destination(map: &Map, start: (usize, usize), end: (usize, usize)) ->
                                     (i, if j - 1 == 0 { map_columns - 2 } else { j - 1 })
                                 }
                             };
+                            // Placing the blizzards in their new place
                             match &mut next_map[row][column] {
                                 Point::Open => {
                                     next_map[row][column] =
@@ -117,16 +119,9 @@ fn walk_to_destination(map: &Map, start: (usize, usize), end: (usize, usize)) ->
                                 Point::Blizzard(b) => {
                                     b.push(direction.clone());
                                 }
-                                Point::Wall => match &mut next_map[row][column] {
-                                    Point::Open => {
-                                        next_map[row][column] =
-                                            Point::Blizzard(vec![direction.clone()]);
-                                    }
-                                    Point::Blizzard(b) => {
-                                        b.push(direction.clone());
-                                    }
-                                    Point::Wall => panic!("Shouldn't happen"),
-                                },
+                                Point::Wall => {
+                                    panic!("Shouldn't happen. Already should have wrapped around");
+                                }
                             };
                         }
                     }
