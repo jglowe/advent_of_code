@@ -15,12 +15,9 @@
 // The file for day24 advent of code 2022
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-use std::{
-    cmp::Reverse,
-    collections::{BinaryHeap, HashSet},
-};
+use std::collections::HashSet;
 
-#[derive(Hash, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 enum Direction {
     North,
     South,
@@ -36,13 +33,6 @@ enum Point {
 }
 
 type Map = Vec<Vec<Point>>;
-
-#[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-struct State {
-    map: Map,
-    row: usize,
-    column: usize,
-}
 
 fn parse_input(input: &str) -> Map {
     let mut map = Vec::new();
@@ -66,39 +56,6 @@ fn parse_input(input: &str) -> Map {
     map
 }
 
-fn print_map(map: &Map, troup_row: usize, troup_column: usize) {
-    for (i, row) in map.iter().enumerate() {
-        let mut to_print = "".to_string();
-        for (j, column) in row.iter().enumerate() {
-            if i == troup_row && j == troup_column {
-                if *column == Point::Open {
-                    to_print += "B"
-                } else {
-                    panic!("Shouldn't Happen")
-                }
-            } else {
-                match column {
-                    Point::Wall => to_print += "#",
-                    Point::Open => to_print += ".",
-                    Point::Blizzard(b) => {
-                        if b.len() > 1 {
-                            to_print += &b.len().to_string()
-                        } else {
-                            match b[0] {
-                                Direction::North => to_print += "^",
-                                Direction::South => to_print += "v",
-                                Direction::East => to_print += ">",
-                                Direction::West => to_print += "<",
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        println!("{}", to_print)
-    }
-}
-
 fn walk_to_destination(map: &Map, start: (usize, usize), end: (usize, usize)) -> (usize, Map) {
     let mut time_elapsed = 0;
     let mut map = map.clone();
@@ -110,9 +67,12 @@ fn walk_to_destination(map: &Map, start: (usize, usize), end: (usize, usize)) ->
     possible_positions.insert(start);
     loop {
         let mut next_possible_positions = HashSet::new();
+
         //
         // Compute next state of blizards
         //
+
+        // Construct a new empty map
         let mut next_map = Vec::new();
 
         for row in &map {
@@ -126,6 +86,7 @@ fn walk_to_destination(map: &Map, start: (usize, usize), end: (usize, usize)) ->
             next_map.push(next_row);
         }
 
+        // Move the blizards in the map
         for (i, row) in map.iter().enumerate() {
             for (j, column) in row.iter().enumerate() {
                 match column {
@@ -133,81 +94,40 @@ fn walk_to_destination(map: &Map, start: (usize, usize), end: (usize, usize)) ->
                     Point::Open => (),
                     Point::Blizzard(blizzards) => {
                         for direction in blizzards {
-                            match direction {
-                                Direction::North => match &mut next_map[i - 1][j] {
+                            // Get next direction, wraping as needed
+                            let (row, column) = match direction {
+                                Direction::North => {
+                                    (if i - 1 == 0 { map_rows - 2 } else { i - 1 }, j)
+                                }
+                                Direction::South => {
+                                    (if i + 1 == map_rows - 1 { 1 } else { i + 1 }, j)
+                                }
+                                Direction::East => {
+                                    (i, if j + 1 == map_columns - 1 { 1 } else { j + 1 })
+                                }
+                                Direction::West => {
+                                    (i, if j - 1 == 0 { map_columns - 2 } else { j - 1 })
+                                }
+                            };
+                            match &mut next_map[row][column] {
+                                Point::Open => {
+                                    next_map[row][column] =
+                                        Point::Blizzard(vec![direction.clone()]);
+                                }
+                                Point::Blizzard(b) => {
+                                    b.push(direction.clone());
+                                }
+                                Point::Wall => match &mut next_map[row][column] {
                                     Point::Open => {
-                                        next_map[i - 1][j] =
-                                            Point::Blizzard(vec![Direction::North]);
+                                        next_map[row][column] =
+                                            Point::Blizzard(vec![direction.clone()]);
                                     }
                                     Point::Blizzard(b) => {
-                                        b.push(Direction::North);
+                                        b.push(direction.clone());
                                     }
-                                    Point::Wall => match &mut next_map[map_rows - 2][j] {
-                                        Point::Open => {
-                                            next_map[map_rows - 2][j] =
-                                                Point::Blizzard(vec![Direction::North]);
-                                        }
-                                        Point::Blizzard(b) => {
-                                            b.push(Direction::North);
-                                        }
-                                        Point::Wall => panic!("Shouldn't happen"),
-                                    },
+                                    Point::Wall => panic!("Shouldn't happen"),
                                 },
-                                Direction::South => match &mut next_map[i + 1][j] {
-                                    Point::Open => {
-                                        next_map[i + 1][j] =
-                                            Point::Blizzard(vec![Direction::South]);
-                                    }
-                                    Point::Blizzard(b) => {
-                                        b.push(Direction::South);
-                                    }
-                                    Point::Wall => match &mut next_map[1][j] {
-                                        Point::Open => {
-                                            next_map[1][j] =
-                                                Point::Blizzard(vec![Direction::South]);
-                                        }
-                                        Point::Blizzard(b) => {
-                                            b.push(Direction::South);
-                                        }
-                                        Point::Wall => panic!("Shouldn't happen"),
-                                    },
-                                },
-                                Direction::East => match &mut next_map[i][j + 1] {
-                                    Point::Open => {
-                                        next_map[i][j + 1] = Point::Blizzard(vec![Direction::East]);
-                                    }
-                                    Point::Blizzard(b) => {
-                                        b.push(Direction::East);
-                                    }
-                                    Point::Wall => match &mut next_map[i][1] {
-                                        Point::Open => {
-                                            next_map[i][1] = Point::Blizzard(vec![Direction::East]);
-                                        }
-                                        Point::Blizzard(b) => {
-                                            b.push(Direction::East);
-                                        }
-                                        Point::Wall => panic!("Shouldn't happen"),
-                                    },
-                                },
-                                Direction::West => match &mut next_map[i][j - 1] {
-                                    Point::Open => {
-                                        next_map[i][j - 1] = Point::Blizzard(vec![Direction::West]);
-                                    }
-                                    Point::Blizzard(b) => {
-                                        b.push(Direction::West);
-                                    }
-                                    Point::Wall => match &mut next_map[i][map_columns - 2] {
-                                        Point::Open => {
-                                            next_map[i][map_columns - 2] =
-                                                Point::Blizzard(vec![Direction::West]);
-                                        }
-                                        Point::Blizzard(b) => {
-                                            b.push(Direction::West);
-                                        }
-                                        Point::Wall => panic!("Shouldn't happen"),
-                                    },
-                                },
-                            }
+                            };
                         }
                     }
                 }
