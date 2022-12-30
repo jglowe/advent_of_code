@@ -118,7 +118,7 @@ fn parse_input(input: &str) -> (Map, Vec<Instruction>, (usize, usize)) {
     (map, instructions, (max_row, max_column))
 }
 
-fn wrap(
+fn wrap_part1(
     map: &Map,
     direction: &Direction,
     row: usize,
@@ -126,39 +126,43 @@ fn wrap(
     max_row: usize,
     max_column: usize,
 ) -> (usize, usize) {
-    match direction {
+    let (n_row, n_column) = match direction {
         Direction::Up => {
             let mut row = max_row;
             while !map.contains_key(&(row, column)) {
                 row -= 1;
             }
-            return (row, column);
+            (row, column)
         }
         Direction::Down => {
             let mut row = 0;
             while !map.contains_key(&(row, column)) {
                 row += 1;
             }
-            return (row, column);
+            (row, column)
         }
         Direction::Left => {
             let mut column = max_column;
             while !map.contains_key(&(row, column)) {
                 column -= 1;
             }
-            return (row, column);
+            (row, column)
         }
         Direction::Right => {
             let mut column = 0;
             while !map.contains_key(&(row, column)) {
                 column += 1;
             }
-            return (row, column);
+            (row, column)
         }
+    };
+    match map.get(&(n_row, n_column)).unwrap() {
+        Point::Wall => (row, column),
+        Point::Open => (n_row, n_column),
     }
 }
 
-fn next_location(
+fn move_forward(
     map: &Map,
     direction: &Direction,
     row: usize,
@@ -166,64 +170,46 @@ fn next_location(
     max_row: usize,
     max_column: usize,
 ) -> (usize, usize) {
-    match direction {
+    let (wrap, n_row, n_column) = match direction {
         Direction::Up => {
             if row != 0 && map.contains_key(&(row - 1, column)) {
-                match map.get(&(row - 1, column)).unwrap() {
-                    Point::Wall => (row, column),
-                    Point::Open => (row - 1, column),
-                }
+                (false, row-1, column)
             } else {
-                let (n_row, n_column) = wrap(map, &direction, row, column, max_row, max_column);
-                match map.get(&(n_row, n_column)).unwrap() {
-                    Point::Wall => (row, column),
-                    Point::Open => (n_row, n_column),
-                }
+                (true, row, column)
             }
         }
         Direction::Down => {
             if map.contains_key(&(row + 1, column)) {
-                match map.get(&(row + 1, column)).unwrap() {
-                    Point::Wall => (row, column),
-                    Point::Open => (row + 1, column),
-                }
+                (false, row+1, column)
             } else {
-                let (n_row, n_column) = wrap(map, &direction, row, column, max_row, max_column);
-                match map.get(&(n_row, n_column)).unwrap() {
-                    Point::Wall => (row, column),
-                    Point::Open => (n_row, n_column),
-                }
+                (true, row, column)
             }
         }
         Direction::Left => {
             if column != 0 && map.contains_key(&(row, column - 1)) {
-                match map.get(&(row, column - 1)).unwrap() {
-                    Point::Wall => (row, column),
-                    Point::Open => (row, column - 1),
-                }
+                (false, row, column - 1)
             } else {
-                let (n_row, n_column) = wrap(map, &direction, row, column, max_row, max_column);
-                match map.get(&(n_row, n_column)).unwrap() {
-                    Point::Wall => (row, column),
-                    Point::Open => (n_row, n_column),
-                }
+                (true, row, column)
             }
         }
         Direction::Right => {
             if map.contains_key(&(row, column + 1)) {
-                match map.get(&(row, column + 1)).unwrap() {
-                    Point::Wall => (row, column),
-                    Point::Open => (row, column + 1),
-                }
+                (false, row, column + 1)
             } else {
-                let (n_row, n_column) = wrap(map, &direction, row, column, max_row, max_column);
-                match map.get(&(n_row, n_column)).unwrap() {
-                    Point::Wall => (row, column),
-                    Point::Open => (n_row, n_column),
-                }
+                (true, row, column)
             }
         }
+    };
+
+    if wrap {
+        wrap_part1(map, &direction, row, column, max_row, max_column)
+    } else {
+        match map.get(&(n_row, n_column)).unwrap() {
+            Point::Wall => (row, column),
+            Point::Open => (n_row, n_column),
+        }
     }
+
 }
 
 fn wrap_part2(
@@ -231,13 +217,122 @@ fn wrap_part2(
     direction: &Direction,
     row: usize,
     column: usize,
+    edge_translation_map: &HashMap<(usize, usize, Direction), (usize, usize, Direction)>,
+) -> (usize, usize, Direction) {
+    let (n_row, n_column, n_direction) = edge_translation_map
+        .get(&(row, column, direction.clone()))
+        .unwrap();
+    match map.get(&(*n_row, *n_column)).unwrap() {
+        Point::Wall => (row, column, direction.clone()),
+        Point::Open => (*n_row, *n_column, n_direction.clone()),
+    }
+}
+
+fn move_forward_part2(
+    map: &Map,
+    direction: &Direction,
+    row: usize,
+    column: usize,
+    edge_translation_map: &HashMap<(usize, usize, Direction), (usize, usize, Direction)>,
+) -> (usize, usize, Direction) {
+    let (wrap, n_row, n_column, n_direction) = match direction {
+        Direction::Up => {
+            if row != 0 && map.contains_key(&(row - 1, column)) {
+                (false, row - 1, column, direction)
+            } else {
+                (true, row, column, direction)
+            }
+        }
+        Direction::Down => {
+            if map.contains_key(&(row + 1, column)) {
+                (false, row + 1, column, direction)
+            } else {
+                (true, row, column, direction)
+            }
+        }
+        Direction::Left => {
+            if column != 0 && map.contains_key(&(row, column - 1)) {
+                (false, row, column - 1, direction)
+            } else {
+                (true, row, column, direction)
+            }
+        }
+        Direction::Right => {
+            if map.contains_key(&(row, column + 1)) {
+                (false, row, column + 1, direction)
+            } else {
+                (true, row, column, direction)
+            }
+        }
+    };
+    if wrap {
+        wrap_part2(map, &direction, row, column, edge_translation_map)
+    } else {
+        match map.get(&(n_row, n_column)).unwrap() {
+            Point::Wall => (row, column, direction.clone()),
+            Point::Open => (n_row, n_column, n_direction.clone()),
+        }
+    }
+}
+
+fn part1(map: &Map, instructions: &Vec<Instruction>, max_row: usize, max_column: usize) -> usize {
+    let mut direction = Direction::Right;
+    let (mut row, mut column) = wrap_part1(map, &direction, 0, 0, max_row, max_column);
+
+    for instruction in instructions {
+        match (instruction, &direction) {
+            (Instruction::Forward(x), d) => {
+                for _ in 0..*x {
+                    (row, column) = move_forward(map, d, row, column, max_row, max_column);
+                }
+            }
+            (Instruction::Left, Direction::Up) => {
+                direction = Direction::Left;
+            }
+            (Instruction::Left, Direction::Down) => {
+                direction = Direction::Right;
+            }
+            (Instruction::Left, Direction::Left) => {
+                direction = Direction::Down;
+            }
+            (Instruction::Left, Direction::Right) => {
+                direction = Direction::Up;
+            }
+            (Instruction::Right, Direction::Up) => {
+                direction = Direction::Right;
+            }
+            (Instruction::Right, Direction::Down) => {
+                direction = Direction::Left;
+            }
+            (Instruction::Right, Direction::Left) => {
+                direction = Direction::Up;
+            }
+            (Instruction::Right, Direction::Right) => {
+                direction = Direction::Down;
+            }
+        }
+    }
+
+    1000 * (row + 1)
+        + 4 * (column + 1)
+        + match direction {
+            Direction::Up => 3,
+            Direction::Down => 1,
+            Direction::Left => 2,
+            Direction::Right => 0,
+        }
+}
+
+fn part2(
+    map: &Map,
+    instructions: &Vec<Instruction>,
     max_row: usize,
     max_column: usize,
     cube_size: usize,
-) -> (usize, usize, Direction) {
-    let (top_row, top_column) = wrap(map, &Direction::Right, 0, 0, max_row, max_column);
-    assert_eq!(top_row, 0);
-    assert_eq!(top_column % cube_size, 0);
+) -> usize {
+    //
+    // Sets up a warping map
+    //
     let mut edge_translation_map: HashMap<(usize, usize, Direction), (usize, usize, Direction)> =
         HashMap::new();
 
@@ -474,142 +569,16 @@ fn wrap_part2(
         _ => panic!("Cube not implemented"),
     };
 
-    let (row, column, direction) = edge_translation_map
-        .get(&(row, column, direction.clone()))
-        .unwrap();
-    (*row, *column, direction.clone())
-}
+    //
+    // Finishes the map
+    //
 
-fn next_location_part2(
-    map: &Map,
-    direction: &Direction,
-    row: usize,
-    column: usize,
-    max_row: usize,
-    max_column: usize,
-    cube_size: usize,
-) -> (usize, usize, Direction) {
-    match direction {
-        Direction::Up => {
-            if row != 0 && map.contains_key(&(row - 1, column)) {
-                match map.get(&(row - 1, column)).unwrap() {
-                    Point::Wall => (row, column, direction.clone()),
-                    Point::Open => (row - 1, column, direction.clone()),
-                }
-            } else {
-                let (n_row, n_column, n_direction) =
-                    wrap_part2(map, &direction, row, column, max_row, max_column, cube_size);
-                match map.get(&(n_row, n_column)).unwrap() {
-                    Point::Wall => (row, column, direction.clone()),
-                    Point::Open => (n_row, n_column, n_direction),
-                }
-            }
-        }
-        Direction::Down => {
-            if map.contains_key(&(row + 1, column)) {
-                match map.get(&(row + 1, column)).unwrap() {
-                    Point::Wall => (row, column, direction.clone()),
-                    Point::Open => (row + 1, column, direction.clone()),
-                }
-            } else {
-                let (n_row, n_column, n_direction) =
-                    wrap_part2(map, &direction, row, column, max_row, max_column, cube_size);
-                match map.get(&(n_row, n_column)).unwrap() {
-                    Point::Wall => (row, column, direction.clone()),
-                    Point::Open => (n_row, n_column, n_direction),
-                }
-            }
-        }
-        Direction::Left => {
-            if column != 0 && map.contains_key(&(row, column - 1)) {
-                match map.get(&(row, column - 1)).unwrap() {
-                    Point::Wall => (row, column, direction.clone()),
-                    Point::Open => (row, column - 1, direction.clone()),
-                }
-            } else {
-                let (n_row, n_column, n_direction) =
-                    wrap_part2(map, &direction, row, column, max_row, max_column, cube_size);
-                match map.get(&(n_row, n_column)).unwrap() {
-                    Point::Wall => (row, column, direction.clone()),
-                    Point::Open => (n_row, n_column, n_direction),
-                }
-            }
-        }
-        Direction::Right => {
-            if map.contains_key(&(row, column + 1)) {
-                match map.get(&(row, column + 1)).unwrap() {
-                    Point::Wall => (row, column, direction.clone()),
-                    Point::Open => (row, column + 1, direction.clone()),
-                }
-            } else {
-                let (n_row, n_column, n_direction) =
-                    wrap_part2(map, &direction, row, column, max_row, max_column, cube_size);
-                match map.get(&(n_row, n_column)).unwrap() {
-                    Point::Wall => (row, column, direction.clone()),
-                    Point::Open => (n_row, n_column, n_direction),
-                }
-            }
-        }
-    }
-}
+    //
+    // Runs each instruction
+    //
 
-fn part1(map: &Map, instructions: &Vec<Instruction>, max_row: usize, max_column: usize) -> usize {
     let mut direction = Direction::Right;
-    let (mut row, mut column) = wrap(map, &direction, 0, 0, max_row, max_column);
-
-    for instruction in instructions {
-        match (instruction, &direction) {
-            (Instruction::Forward(x), d) => {
-                for _ in 0..*x {
-                    (row, column) = next_location(map, d, row, column, max_row, max_column);
-                }
-            }
-            (Instruction::Left, Direction::Up) => {
-                direction = Direction::Left;
-            }
-            (Instruction::Left, Direction::Down) => {
-                direction = Direction::Right;
-            }
-            (Instruction::Left, Direction::Left) => {
-                direction = Direction::Down;
-            }
-            (Instruction::Left, Direction::Right) => {
-                direction = Direction::Up;
-            }
-            (Instruction::Right, Direction::Up) => {
-                direction = Direction::Right;
-            }
-            (Instruction::Right, Direction::Down) => {
-                direction = Direction::Left;
-            }
-            (Instruction::Right, Direction::Left) => {
-                direction = Direction::Up;
-            }
-            (Instruction::Right, Direction::Right) => {
-                direction = Direction::Down;
-            }
-        }
-    }
-
-    1000 * (row + 1)
-        + 4 * (column + 1)
-        + match direction {
-            Direction::Up => 3,
-            Direction::Down => 1,
-            Direction::Left => 2,
-            Direction::Right => 0,
-        }
-}
-
-fn part2(
-    map: &Map,
-    instructions: &Vec<Instruction>,
-    max_row: usize,
-    max_column: usize,
-    cube_size: usize,
-) -> usize {
-    let mut direction = Direction::Right;
-    let (mut row, mut column) = wrap(map, &direction, 0, 0, max_row, max_column);
+    let (mut row, mut column) = wrap_part1(map, &direction, 0, 0, max_row, max_column);
 
     for instruction in instructions {
         (row, column, direction) = match (instruction, direction) {
@@ -617,7 +586,7 @@ fn part2(
                 let mut d = d;
                 for _ in 0..*x {
                     (row, column, d) =
-                        next_location_part2(map, &d, row, column, max_row, max_column, cube_size);
+                        move_forward_part2(map, &d, row, column, &edge_translation_map);
                 }
                 (row, column, d)
             }
@@ -631,6 +600,10 @@ fn part2(
             (Instruction::Right, Direction::Right) => (row, column, Direction::Down),
         };
     }
+
+    //
+    // Calculates results
+    //
 
     1000 * (row + 1)
         + 4 * (column + 1)
@@ -659,25 +632,25 @@ fn main() {
 mod tests {
     use super::*;
 
-    //     #[test]
-    //     fn part1_test() {
-    //         let input = "        ...#
-    //         .#..
-    //         #...
-    //         ....
-    // ...#.......#
-    // ........#...
-    // ..#....#....
-    // ..........#.
-    //         ...#....
-    //         .....#..
-    //         .#......
-    //         ......#.
-    //
-    // 10R5L5R10L4R5L5\n";
-    //         let (map, instructions, (max_row, max_column)) = parse_input(&input);
-    //         assert_eq!(6032, part1(&map, &instructions, max_row, max_column));
-    //     }
+    #[test]
+    fn part1_test() {
+        let input = "        ...#
+        .#..
+        #...
+        ....
+...#.......#
+........#...
+..#....#....
+..........#.
+        ...#....
+        .....#..
+        .#......
+        ......#.
+
+10R5L5R10L4R5L5\n";
+        let (map, instructions, (max_row, max_column)) = parse_input(&input);
+        assert_eq!(6032, part1(&map, &instructions, max_row, max_column));
+    }
 
     #[test]
     fn part2_test() {
