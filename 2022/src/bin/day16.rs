@@ -264,7 +264,6 @@ fn traverse_graph2(
         }
     }
 
-    println!("HERE");
     paths
         .iter()
         .tuple_combinations()
