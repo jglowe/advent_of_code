@@ -1,0 +1,7 @@
+name: advent_of_code
+version: 0.1.0
+
+authors:
+  - Jonathan Lowe <me@jonathanlowe.dev>
+
+crystal: 1.6.2
