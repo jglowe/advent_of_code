@@ -1,33 +1,48 @@
+(*******************************************************************************
+ *                               _             ___
+ *                              | |           |__ \
+ *                            __| | __ _ _   _   ) |
+ *                           / _` |/ _` | | | | / /
+ *                          | (_| | (_| | |_| |/ /_
+ *                           \__,_|\__,_|\__, |____|
+ *                                        __/ |
+ *                                       |___/
+ *
+ * Jonathan Lowe
+ * github : https://github.com/jglowe
+ *
+ * The file for day2 of advent of code 2019
+ ******************************************************************************)
+
 let compute_program program =
-  let rec helper index program =
+  let rec compute_program index program =
     match Array.get program index with
     | 1 ->
-        let first_index = Array.get program (index + 1) in
-        let second_index = Array.get program (index + 2) in
-        let third_index = Array.get program (index + 3) in
+        let register1 = Array.get program (index + 1) in
+        let register2 = Array.get program (index + 2) in
+        let register3 = Array.get program (index + 3) in
         let sum =
-          Array.get program first_index + Array.get program second_index
+          Array.get program register1 + Array.get program register2
         in
-        Array.set program third_index sum ;
-        helper (index + 4) program
+        Array.set program register3 sum ;
+        compute_program (index + 4) program
     | 2 ->
-        let first_index = Array.get program (index + 1) in
-        let second_index = Array.get program (index + 2) in
-        let third_index = Array.get program (index + 3) in
+        let register1 = Array.get program (index + 1) in
+        let register2 = Array.get program (index + 2) in
+        let register3 = Array.get program (index + 3) in
         let mult =
-          Array.get program first_index * Array.get program second_index
+          Array.get program register1 * Array.get program register2
         in
-        Array.set program third_index mult ;
-        helper (index + 4) program
+        Array.set program register3 mult ;
+        compute_program (index + 4) program
     | 99 -> program
     | _ -> assert false
   in
-  helper 0 program
+  compute_program 0 program
 
 let part1 strings =
   let program =
     match strings with
-    | [] -> assert false
     | first_line :: [] ->
         String.split_on_char ',' first_line
         |> List.map int_of_string |> Array.of_list
@@ -40,7 +55,6 @@ let part1 strings =
 let part2 strings =
   let program =
     match strings with
-    | [] -> assert false
     | first_line :: [] ->
         String.split_on_char ',' first_line
         |> List.map int_of_string |> Array.of_list
