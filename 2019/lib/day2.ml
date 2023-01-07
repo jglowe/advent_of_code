@@ -41,30 +41,22 @@ let compute_program program =
   compute_program 0 program
 
 let part1 strings =
-  let program =
-    match strings with
-    | first_line :: [] ->
-        String.split_on_char ',' first_line
-        |> List.map int_of_string |> Array.of_list
-    | _ -> assert false
-  in
+  let program = Inicode.parse_program strings in
   Array.set program 1 12 ;
   Array.set program 2 2 ;
-  Array.get (compute_program program) 0
+  let process = Inicode.new_process program in
+  let _ = Inicode.compute_process process [] in
+  Array.get (process.program) 0
 
 let part2 strings =
-  let program =
-    match strings with
-    | first_line :: [] ->
-        String.split_on_char ',' first_line
-        |> List.map int_of_string |> Array.of_list
-    | _ -> assert false
-  in
+  let program = Inicode.parse_program strings in
   let rec brute_force input1 input2 =
     let program = Array.copy program in
     Array.set program 1 input1 ;
     Array.set program 2 input2 ;
-    if Array.get (compute_program program) 0 = 19690720 then
+    let process = Inicode.new_process program in
+    let _ = Inicode.compute_process process [] in
+    if Array.get process.program 0 = 19690720 then
       (input1 * 100) + input2
     else if input2 == 99 then brute_force (input1 + 1) 0
     else brute_force input1 (input2 + 1)

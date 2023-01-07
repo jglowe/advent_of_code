@@ -94,28 +94,17 @@ let compute_program program input =
   in
   helper 0 program None
 
+
 let part1 strings =
-  let program =
-    match strings with
-    | [] -> assert false
-    | first_line :: [] ->
-        String.split_on_char ',' first_line
-        |> List.map int_of_string |> Array.of_list
-    | _ -> assert false
-  in
-  let _, output = compute_program program 1 in
+  let program = Inicode.parse_program strings in
+  let process = Inicode.new_process program in
+  let output, _ = Inicode.compute_process process [1] in
   match output with Some output -> output | None -> assert false
 
 let part2 strings =
-  let program =
-    match strings with
-    | [] -> assert false
-    | first_line :: [] ->
-        String.split_on_char ',' first_line
-        |> List.map int_of_string |> Array.of_list
-    | _ -> assert false
-  in
-  let _, output = compute_program program 5 in
+  let program = Inicode.parse_program strings in
+  let process = Inicode.new_process program in
+  let output, _ = Inicode.compute_process process [1] in
   match output with Some output -> output | None -> assert false
 
 let%test "compute_program ex1" =
